@@ -414,7 +414,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void handleFacebookAccessToken(AccessToken token) {
-        Log.d(TAG, "Manejando token de Facebook");
+        Log.d(TAG, "Manejando token de Facebook " + token);
         showProgress(true);
 
         AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
@@ -645,7 +645,7 @@ public class LoginActivity extends AppCompatActivity {
                 Log.d("KeyHash", "Key Hash para Facebook: " + keyHash);
 
                 // También mostrar en Toast para copiarlo fácilmente
-                Toast.makeText(this, "Key Hash: " + keyHash, Toast.LENGTH_LONG).show();
+                //Toast.makeText(this, "Key Hash: " + keyHash, Toast.LENGTH_LONG).show();
             }
         } catch (Exception e) {
             Log.e("KeyHash", "Error obteniendo key hash", e);

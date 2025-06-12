@@ -3,6 +3,7 @@ package com.example.lab6_20206331.fragments;
 import android.app.DatePickerDialog;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -92,10 +93,18 @@ public class ResumenFragment extends Fragment {
     }
 
     private void setupClickListeners() {
-        btnSelectMonth.setOnClickListener(v -> showMonthPicker());
+        if (btnSelectMonth != null) {
+            btnSelectMonth.setOnClickListener(v -> showMonthPicker());
+        }
     }
 
     private void showMonthPicker() {
+        // VERIFICAR CONTEXTO ANTES DE CREAR DATEPICKER
+        if (getContext() == null) {
+            Log.w(TAG, "Contexto nulo, no se puede mostrar DatePicker");
+            return;
+        }
+
         DatePickerDialog datePickerDialog = new DatePickerDialog(
                 getContext(),
                 (view, year, month, dayOfMonth) -> {
@@ -120,9 +129,11 @@ public class ResumenFragment extends Fragment {
     }
 
     private void updateSelectedMonthDisplay() {
-        SimpleDateFormat monthFormat = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
-        String monthYear = monthFormat.format(selectedCalendar.getTime());
-        tvSelectedMonth.setText(monthYear);
+        if (tvSelectedMonth != null && selectedCalendar != null) {
+            SimpleDateFormat monthFormat = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
+            String monthYear = monthFormat.format(selectedCalendar.getTime());
+            tvSelectedMonth.setText(monthYear);
+        }
     }
 
     private void loadDataForSelectedMonth() {
@@ -131,46 +142,87 @@ public class ResumenFragment extends Fragment {
         String selectedMonthYear = getSelectedMonthYear();
 
         // Cargar ingresos
-        ingresoRepository.getAllIngresos(new IngresoRepository.OnIngresosLoadedListener() {
-            @Override
-            public void onSuccess(List<Ingreso> ingresos) {
-                ingresosList = filterByMonth(ingresos, selectedMonthYear);
-
-                // Cargar egresos
-                egresoRepository.getAllEgresos(new EgresoRepository.OnEgresosLoadedListener() {
-                    @Override
-                    public void onSuccess(List<Egreso> egresos) {
-                        egresosList = filterByMonth(egresos, selectedMonthYear);
-
-                        // Calcular totales y actualizar UI
-                        calculateTotals();
-                        updateChartsAndSummary();
-                        showProgress(false);
+        if (ingresoRepository != null) {
+            ingresoRepository.getAllIngresos(new IngresoRepository.OnIngresosLoadedListener() {
+                @Override
+                public void onSuccess(List<Ingreso> ingresos) {
+                    // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                    if (!isAdded() || getContext() == null) {
+                        Log.w(TAG, "Fragment no está adjunto, ignorando callback de ingresos");
+                        return;
                     }
 
-                    @Override
-                    public void onError(String error) {
-                        showProgress(false);
-                        showError("Error cargando egresos: " + error);
-                    }
-                });
-            }
+                    ingresosList = filterByMonth(ingresos, selectedMonthYear);
 
-            @Override
-            public void onError(String error) {
-                showProgress(false);
-                showError("Error cargando ingresos: " + error);
-            }
-        });
+                    // Cargar egresos
+                    if (egresoRepository != null) {
+                        egresoRepository.getAllEgresos(new EgresoRepository.OnEgresosLoadedListener() {
+                            @Override
+                            public void onSuccess(List<Egreso> egresos) {
+                                // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                                if (!isAdded() || getContext() == null) {
+                                    Log.w(TAG, "Fragment no está adjunto, ignorando callback de egresos");
+                                    return;
+                                }
+
+                                egresosList = filterByMonth(egresos, selectedMonthYear);
+
+                                // Calcular totales y actualizar UI
+                                calculateTotals();
+                                updateChartsAndSummary();
+                                showProgress(false);
+                            }
+
+                            @Override
+                            public void onError(String error) {
+                                // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                                if (!isAdded() || getContext() == null) {
+                                    Log.w(TAG, "Fragment no está adjunto, ignorando callback de error egresos");
+                                    return;
+                                }
+
+                                showProgress(false);
+                                showError("Error cargando egresos: " + error);
+                            }
+                        });
+                    } else {
+                        showProgress(false);
+                        showError("Repository de egresos no disponible");
+                    }
+                }
+
+                @Override
+                public void onError(String error) {
+                    // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                    if (!isAdded() || getContext() == null) {
+                        Log.w(TAG, "Fragment no está adjunto, ignorando callback de error ingresos");
+                        return;
+                    }
+
+                    showProgress(false);
+                    showError("Error cargando ingresos: " + error);
+                }
+            });
+        } else {
+            showProgress(false);
+            showError("Repository de ingresos no disponible");
+        }
     }
 
     private String getSelectedMonthYear() {
-        SimpleDateFormat format = new SimpleDateFormat("MM/yyyy", Locale.getDefault());
-        return format.format(selectedCalendar.getTime());
+        if (selectedCalendar != null) {
+            SimpleDateFormat format = new SimpleDateFormat("MM/yyyy", Locale.getDefault());
+            return format.format(selectedCalendar.getTime());
+        }
+        return "";
     }
 
     private <T> List<T> filterByMonth(List<T> items, String monthYear) {
         List<T> filtered = new ArrayList<>();
+
+        if (items == null || monthYear == null || monthYear.isEmpty()) {
+            return filtered;
+        }
 
         for (T item : items) {
             String itemDate = "";
@@ -182,7 +234,7 @@ public class ResumenFragment extends Fragment {
             }
 
             // Extraer MM/yyyy de la fecha dd/MM/yyyy
-            if (itemDate.length() >= 10) {
+            if (itemDate != null && itemDate.length() >= 10) {
                 String itemMonthYear = itemDate.substring(3); // "MM/yyyy"
                 if (itemMonthYear.equals(monthYear)) {
                     filtered.add(item);
@@ -197,24 +249,43 @@ public class ResumenFragment extends Fragment {
         totalIngresos = 0.0;
         totalEgresos = 0.0;
 
-        for (Ingreso ingreso : ingresosList) {
-            totalIngresos += ingreso.getMonto();
+        if (ingresosList != null) {
+            for (Ingreso ingreso : ingresosList) {
+                if (ingreso != null) {
+                    totalIngresos += ingreso.getMonto();
+                }
+            }
         }
 
-        for (Egreso egreso : egresosList) {
-            totalEgresos += egreso.getMonto();
+        if (egresosList != null) {
+            for (Egreso egreso : egresosList) {
+                if (egreso != null) {
+                    totalEgresos += egreso.getMonto();
+                }
+            }
         }
 
         balance = totalIngresos - totalEgresos;
     }
 
     private void updateChartsAndSummary() {
+        // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+        if (!isAdded() || getContext() == null) {
+            Log.w(TAG, "Fragment no está adjunto, no actualizando UI");
+            return;
+        }
+
         updateSummaryCards();
         updatePieChart();
         updateBarChart();
     }
 
     private void updateSummaryCards() {
+        if (tvTotalIngresos == null || tvTotalEgresos == null || tvBalance == null) {
+            Log.w(TAG, "TextViews no inicializados, saltando actualización de summary cards");
+            return;
+        }
+
         DecimalFormat formatter = new DecimalFormat("#,##0.00");
 
         tvTotalIngresos.setText("S/. " + formatter.format(totalIngresos));
@@ -222,14 +293,23 @@ public class ResumenFragment extends Fragment {
         tvBalance.setText("S/. " + formatter.format(balance));
 
         // Cambiar color del balance según sea positivo o negativo
-        if (balance >= 0) {
-            tvBalance.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
-        } else {
-            tvBalance.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+        try {
+            if (balance >= 0) {
+                tvBalance.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+            } else {
+                tvBalance.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error cambiando color del balance", e);
         }
     }
 
     private void updatePieChart() {
+        if (pieChart == null) {
+            Log.w(TAG, "PieChart no inicializado, saltando actualización");
+            return;
+        }
+
         List<PieChartView.PieSlice> slices = new ArrayList<>();
 
         if (totalIngresos > 0 || totalEgresos > 0) {
@@ -262,25 +342,60 @@ public class ResumenFragment extends Fragment {
             ));
         }
 
-        pieChart.setData(slices);
+        try {
+            pieChart.setData(slices);
+        } catch (Exception e) {
+            Log.e(TAG, "Error actualizando pie chart", e);
+        }
     }
 
     private void updateBarChart() {
-        // Usar el método especializado para datos financieros
-        barChart.setFinancialData((float) totalIngresos, (float) totalEgresos);
+        if (barChart == null) {
+            Log.w(TAG, "BarChart no inicializado, saltando actualización");
+            return;
+        }
+
+        try {
+            // Usar el método especializado para datos financieros
+            barChart.setFinancialData((float) totalIngresos, (float) totalEgresos);
+        } catch (Exception e) {
+            Log.e(TAG, "Error actualizando bar chart", e);
+        }
     }
 
     private void showProgress(boolean show) {
-        if (show) {
+        if (show && isAdded() && getContext() != null) {
             Toast.makeText(getContext(), "Cargando datos...", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void showError(String message) {
-        Toast.makeText(getContext(), "❌ " + message, Toast.LENGTH_LONG).show();
+        // VERIFICACIÓN SEGURA PARA TOAST
+        if (isAdded() && getContext() != null) {
+            Toast.makeText(getContext(), "❌ " + message, Toast.LENGTH_LONG).show();
+        } else {
+            Log.e(TAG, "Error (fragment no adjunto): " + message);
+        }
     }
 
     private void showInfo(String message) {
-        Toast.makeText(getContext(), "ℹ️ " + message, Toast.LENGTH_SHORT).show();
+        // VERIFICACIÓN SEGURA PARA TOAST
+        if (isAdded() && getContext() != null) {
+            Toast.makeText(getContext(), "ℹ️ " + message, Toast.LENGTH_SHORT).show();
+        } else {
+            Log.i(TAG, "Info (fragment no adjunto): " + message);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        // Limpiar repositories si es necesario
+        if (ingresoRepository != null) {
+            ingresoRepository.cleanup();
+        }
+        if (egresoRepository != null) {
+            egresoRepository.cleanup();
+        }
     }
 }
