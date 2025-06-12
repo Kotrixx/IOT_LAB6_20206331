@@ -1,3 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">LAB6_20206331</string>
+
+    <!-- ================= APP INFO ================= -->
+    <string name="app_name">MoneyTracker</string>
+    <string name="app_description">Gestiona tu dinero de forma inteligente</string>
+    <string name="app_footer">© 2024 MoneyTracker - PUCP</string>
+
+    <!-- ================= FIREBASE CONFIGURATION ================= -->
+
+    <!-- IMPORTANTE: Reemplaza estos valores con tus IDs reales de Firebase -->
+    <!-- Para obtener estos valores:
+         1. Ve a Firebase Console: https://console.firebase.google.com/
+         2. Selecciona tu proyecto
+         3. Ve a Project Settings > General
+         4. En la sección "Your apps", encuentra tu app Android
+         5. Descarga el archivo google-services.json
+         6. Dentro del archivo encontrarás estos valores -->
+
+    <string name="default_web_client_id">TU_GOOGLE_WEB_CLIENT_ID_AQUI.apps.googleusercontent.com</string>
+
+    <!-- ================= FACEBOOK CONFIGURATION ================= -->
+
+    <!-- IMPORTANTE: Reemplaza estos valores con tus IDs reales de Facebook -->
+    <!-- Para obtener estos valores:
+         1. Ve a Facebook Developers: https://developers.facebook.com/
+         2. Crea una nueva app o selecciona una existente
+         3. Ve a Settings > Basic
+         4. Copia App ID y App Secret (Client Token) -->
+
+    <string name="facebook_app_id">3982799345271917</string>
+    <string name="facebook_client_token">ab0f1997153d8c3ce6a06ce25388d364</string>
+    <string name="fb_login_protocol_scheme">fb3982799345271917</string>
+
+    <!-- ================= NOTIFICATION CONFIGURATION ================= -->
+
+    <string name="default_notification_channel_id">money_tracker_notifications</string>
+    <string name="default_notification_channel_name">MoneyTracker Notifications</string>
+    <string name="default_notification_channel_description">Notificaciones de recordatorios y resúmenes financieros</string>
+
+    <!-- ================= LOGIN SCREEN ================= -->
+    <string name="login_title">Iniciar Sesión</string>
+    <string name="register_title">Crear Cuenta</string>
+    <string name="email_hint">Correo electrónico</string>
+    <string name="password_hint">Contraseña</string>
+    <string name="login_button">Iniciar Sesión</string>
+    <string name="register_button">Registrarse</string>
+    <string name="google_signin">Continuar con Google</string>
+    <string name="facebook_signin">Continuar con Facebook</string>
+    <string name="forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="no_account">¿No tienes cuenta? Regístrate</string>
+    <string name="have_account">¿Ya tienes cuenta? Inicia sesión</string>
+    <string name="or_continue_with">O continúa con</string>
+    <string name="terms_register">Al registrarte aceptas nuestros términos</string>
+
+    <!-- ================= NAVIGATION ================= -->
+    <string name="nav_ingresos">Ingresos</string>
+    <string name="nav_egresos">Egresos</string>
+    <string name="nav_resumen">Resumen</string>
+    <string name="nav_logout">Salir</string>
+
+    <!-- ================= INGRESOS SCREEN ================= -->
+    <string name="ingresos_title">Mis Ingresos</string>
+    <string name="add_ingreso">Agregar Ingreso</string>
+    <string name="edit_ingreso">Editar Ingreso</string>
+    <string name="delete_ingreso">Eliminar Ingreso</string>
+    <string name="no_ingresos">No tienes ingresos registrados</string>
+    <string name="no_ingresos_description">Toca el botón + para agregar tu primer ingreso</string>
+    <string name="total_ingresos">Total: S/. %1$s</string>
+    <string name="registrar_ingreso">Registrar Ingreso</string>
+    <string name="completar_info_ingreso">Completa la información del ingreso</string>
+
+    <!-- ================= EGRESOS SCREEN ================= -->
+    <string name="egresos_title">Mis Egresos</string>
+    <string name="add_egreso">Agregar Egreso</string>
+    <string name="edit_egreso">Editar Egreso</string>
+    <string name="delete_egreso">Eliminar Egreso</string>
+    <string name="no_egresos">No tienes egresos registrados</string>
+    <string name="no_egresos_description">Toca el botón + para agregar tu primer egreso</string>
+    <string name="total_egresos">Total: S/. %1$s</string>
+    <string name="registrar_egreso">Registrar Egreso</string>
+    <string name="completar_info_egreso">Completa la información del egreso</string>
+
+    <!-- ================= RESUMEN SCREEN ================= -->
+    <string name="resumen_title">Resumen Financiero</string>
+    <string name="distribucion_title">Distribución Porcentual</string>
+    <string name="comparativo_title">Comparativo Mensual</string>
+    <string name="balance_title">Balance</string>
+    <string name="loading_data">Cargando datos...</string>
+
+    <!-- ================= FORM FIELDS ================= -->
+    <string name="titulo_hint">Título</string>
+    <string name="titulo_ingreso_hint">Título del ingreso</string>
+    <string name="titulo_egreso_hint">Título del egreso</string>
+    <string name="monto_hint">Monto (S/.)</string>
+    <string name="descripcion_hint">Descripción (opcional)</string>
+    <string name="descripcion_ingreso_hint">Detalles adicionales sobre este ingreso...</string>
+    <string name="descripcion_egreso_hint">Detalles adicionales sobre este egreso...</string>
+    <string name="fecha_hint">Fecha</string>
+    <string name="save_button">Guardar</string>
+    <string name="cancel_button">Cancelar</string>
+
+    <!-- ================= FORM EXAMPLES ================= -->
+    <string name="ejemplo_titulo_ingreso">Ej: Salario mensual, Freelance, Venta...</string>
+    <string name="ejemplo_titulo_egreso">Ej: Supermercado, Gasolina, Restaurante...</string>
+
+    <!-- ================= VALIDATION MESSAGES ================= -->
+    <string name="error_email_required">El email es requerido</string>
+    <string name="error_email_invalid">Ingresa un email válido</string>
+    <string name="error_password_required">La contraseña es requerida</string>
+    <string name="error_password_length">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="error_titulo_required">El título es requerido</string>
+    <string name="error_titulo_length">El título debe tener entre 3 y 100 caracteres</string>
+    <string name="error_monto_required">El monto es requerido</string>
+    <string name="error_monto_invalid">Ingresa un monto válido mayor a 0</string>
+    <string name="error_fecha_required">La fecha es requerida</string>
+    <string name="error_fecha_invalid">Selecciona una fecha válida</string>
+    <string name="error_descripcion_length">La descripción no debe exceder 500 caracteres</string>
+
+    <!-- ================= SUCCESS MESSAGES ================= -->
+    <string name="login_success">Bienvenido de vuelta</string>
+    <string name="register_success">Cuenta creada exitosamente</string>
+    <string name="logout_success">Sesión cerrada exitosamente</string>
+    <string name="ingreso_saved">Ingreso guardado exitosamente</string>
+    <string name="egreso_saved">Egreso guardado exitosamente</string>
+    <string name="ingreso_updated">Ingreso actualizado exitosamente</string>
+    <string name="egreso_updated">Egreso actualizado exitosamente</string>
+    <string name="ingreso_deleted">Ingreso eliminado exitosamente</string>
+    <string name="egreso_deleted">Egreso eliminado exitosamente</string>
+    <string name="operation_success">Operación realizada exitosamente</string>
+
+    <!-- ================= ERROR MESSAGES ================= -->
+    <string name="error_auth">Error de autenticación: %1$s</string>
+    <string name="error_create_account">Error al crear la cuenta: %1$s</string>
+    <string name="error_google_signin">Error al iniciar sesión con Google</string>
+    <string name="error_facebook_signin">Error al iniciar sesión con Facebook: %1$s</string>
+    <string name="error_load_ingresos">Error al cargar ingresos: %1$s</string>
+    <string name="error_load_egresos">Error al cargar egresos: %1$s</string>
+    <string name="error_delete_ingreso">Error al eliminar ingreso: %1$s</string>
+    <string name="error_delete_egreso">Error al eliminar egreso: %1$s</string>
+    <string name="error_save_ingreso">Error al guardar ingreso: %1$s</string>
+    <string name="error_save_egreso">Error al guardar egreso: %1$s</string>
+    <string name="error_update_ingreso">Error al actualizar: %1$s</string>
+    <string name="error_update_egreso">Error al actualizar: %1$s</string>
+    <string name="error_user_not_authenticated">Usuario no autenticado</string>
+    <string name="error_network">Error de conexión. Verifica tu internet.</string>
+    <string name="error_unknown">Ha ocurrido un error inesperado</string>
+
+    <!-- ================= DIALOG MESSAGES ================= -->
+    <string name="dialog_logout_title">Cerrar Sesión</string>
+    <string name="dialog_logout_message">¿Estás seguro de que deseas cerrar sesión?</string>
+    <string name="dialog_delete_ingreso_title">Eliminar Ingreso</string>
+    <string name="dialog_delete_ingreso_message">¿Estás seguro de que deseas eliminar \"%1$s\"?</string>
+    <string name="dialog_delete_egreso_title">Eliminar Egreso</string>
+    <string name="dialog_delete_egreso_message">¿Estás seguro de que deseas eliminar \"%1$s\"?</string>
+    <string name="dialog_exit_title">Salir de la aplicación</string>
+    <string name="dialog_exit_message">¿Deseas salir de MoneyTracker?</string>
+    <string name="dialog_discard_changes_title">Descartar cambios</string>
+    <string name="dialog_discard_changes_message">¿Estás seguro de que deseas salir sin guardar?</string>
+    <string name="dialog_yes">Sí</string>
+    <string name="dialog_no">No</string>
+    <string name="dialog_ok">Aceptar</string>
+    <string name="dialog_cancel">Cancelar</string>
+    <string name="dialog_delete">Eliminar</string>
+    <string name="dialog_exit">Salir</string>
+    <string name="dialog_continue_editing">Continuar editando</string>
+
+    <!-- ================= FACEBOOK LOGIN MESSAGES ================= -->
+    <string name="facebook_login_cancelled">Inicio de sesión con Facebook cancelado</string>
+
+    <!-- ================= ACCESSIBILITY ================= -->
+    <string name="content_description_logo">Logo de MoneyTracker</string>
+    <string name="content_description_add_ingreso">Agregar nuevo ingreso</string>
+    <string name="content_description_add_egreso">Agregar nuevo egreso</string>
+    <string name="content_description_edit">Editar</string>
+    <string name="content_description_delete">Eliminar</string>
+    <string name="content_description_filter">Filtrar</string>
+    <string name="content_description_profile">Perfil</string>
+    <string name="content_description_ingreso_icon">Icono de ingreso</string>
+    <string name="content_description_egreso_icon">Icono de egreso</string>
+    <string name="content_description_edit_ingreso">Editar %1$s</string>
+    <string name="content_description_delete_ingreso">Eliminar %1$s</string>
+    <string name="content_description_edit_egreso">Editar %1$s</string>
+    <string name="content_description_delete_egreso">Eliminar %1$s</string>
+
+    <!-- ================= MONTH NAMES ================= -->
+    <string-array name="meses_array">
+        <item>Enero</item>
+        <item>Febrero</item>
+        <item>Marzo</item>
+        <item>Abril</item>
+        <item>Mayo</item>
+        <item>Junio</item>
+        <item>Julio</item>
+        <item>Agosto</item>
+        <item>Septiembre</item>
+        <item>Octubre</item>
+        <item>Noviembre</item>
+        <item>Diciembre</item>
+    </string-array>
+
+    <!-- ================= CHART LABELS ================= -->
+    <string name="chart_ingresos">Ingresos</string>
+    <string name="chart_egresos">Egresos</string>
+    <string name="chart_balance">Balance</string>
+    <string name="chart_no_data">Sin datos para mostrar</string>
+    <string name="chart_loading">Cargando gráfico...</string>
+
+    <!-- ================= CURRENCY ================= -->
+    <string name="currency_symbol">S/.</string>
+    <string name="currency_format">S/. %1$s</string>
+    <string name="currency_format_negative">-S/. %1$s</string>
+    <string name="currency_format_positive">+S/. %1$s</string>
+
+    <!-- ================= WELCOME MESSAGES ================= -->
+    <string name="welcome_back">Bienvenido de vuelta</string>
+    <string name="welcome">Bienvenido</string>
+    <string name="hello_user">Hola, %1$s</string>
+
+    <!-- ================= TIPS AND ADVICE ================= -->
+    <string name="tips_title">Consejos</string>
+    <string name="tips_ingresos">• Usa títulos descriptivos para identificar fácilmente tus ingresos\n• La descripción te ayudará a recordar detalles importantes\n• En modo edición solo puedes cambiar el monto y descripción</string>
+    <string name="tips_egresos">• Categoriza tus gastos con títulos específicos\n• Guarda recibos y anota detalles en la descripción\n• Registra tus gastos lo antes posible para no olvidarlos</string>
+    <string name="edit_mode_info">Solo puedes editar el monto y la descripción</string>
+
+    <!-- ================= EMPTY STATES ================= -->
+    <string name="empty_state_add_first">Agregar tu primer %1$s</string>
+    <string name="empty_state_no_data">No hay datos disponibles</string>
+    <string name="empty_state_no_results">No se encontraron resultados</string>
+
+    <!-- ================= DATE FORMATS ================= -->
+    <string name="date_format_display">dd/MM/yyyy</string>
+    <string name="date_today">Hoy</string>
+    <string name="date_yesterday">Ayer</string>
+    <string name="date_this_week">Esta semana</string>
+    <string name="date_this_month">Este mes</string>
+    <string name="date_no_date">Sin fecha</string>
+
+    <!-- ================= FILTER OPTIONS ================= -->
+    <string name="filter_all">Todos</string>
+    <string name="filter_today">Hoy</string>
+    <string name="filter_this_week">Esta semana</string>
+    <string name="filter_this_month">Este mes</string>
+    <string name="filter_last_month">Mes pasado</string>
+    <string name="filter_custom">Personalizado</string>
+
+    <!-- ================= SORT OPTIONS ================= -->
+    <string name="sort_by">Ordenar por</string>
+    <string name="sort_date_newest">Fecha (más reciente)</string>
+    <string name="sort_date_oldest">Fecha (más antiguo)</string>
+    <string name="sort_amount_highest">Monto (mayor)</string>
+    <string name="sort_amount_lowest">Monto (menor)</string>
+    <string name="sort_title_az">Título (A-Z)</string>
+    <string name="sort_title_za">Título (Z-A)</string>
+
+    <!-- ================= SUMMARY STATISTICS ================= -->
+    <string name="summary_total_transactions">Total de transacciones</string>
+    <string name="summary_average_income">Promedio de ingresos</string>
+    <string name="summary_average_expense">Promedio de egresos</string>
+    <string name="summary_highest_income">Mayor ingreso</string>
+    <string name="summary_highest_expense">Mayor egreso</string>
+    <string name="summary_financial_health">Estado financiero</string>
+    <string name="summary_surplus">Superávit</string>
+    <string name="summary_deficit">Déficit</string>
+    <string name="summary_balanced">Equilibrado</string>
+
+    <!-- ================= NOTIFICATION MESSAGES ================= -->
+    <string name="notification_reminder_title">Recordatorio MoneyTracker</string>
+    <string name="notification_reminder_message">No olvides registrar tus gastos de hoy</string>
+    <string name="notification_weekly_summary">Tu resumen semanal está listo</string>
+    <string name="notification_monthly_summary">Tu resumen mensual está disponible</string>
+
+    <!-- ================= SHARING ================= -->
+    <string name="share_summary_title">Mi resumen financiero - MoneyTracker</string>
+    <string name="share_summary_text">Este mes: Ingresos S/. %1$s, Egresos S/. %2$s, Balance: %3$s</string>
+
+    <!-- ================= BACKUP AND SYNC ================= -->
+    <string name="backup_title">Respaldo de datos</string>
+    <string name="backup_description">Tus datos se respaldan automáticamente en la nube</string>
+    <string name="sync_in_progress">Sincronizando datos...</string>
+    <string name="sync_complete">Datos sincronizados</string>
+    <string name="sync_error">Error al sincronizar datos</string>
+
+    <!-- ================= SETTINGS ================= -->
+    <string name="settings_title">Configuración</string>
+    <string name="settings_account">Cuenta</string>
+    <string name="settings_notifications">Notificaciones</string>
+    <string name="settings_backup">Respaldo</string>
+    <string name="settings_about">Acerca de</string>
+    <string name="settings_privacy">Privacidad</string>
+    <string name="settings_terms">Términos de uso</string>
+    <!-- Messages -->
+    <string name="welcome_message">¡Bienvenido a MoneyTracker!</string>
+    <string name="logout_confirmation">¿Estás seguro de que quieres cerrar sesión?</string>
 </resources>

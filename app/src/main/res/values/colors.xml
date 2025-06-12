@@ -1,5 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+
+    <!-- ================= PRIMARY GREEN COLORS ================= -->
+    <color name="primary_green">#2D5F2D</color>
+    <color name="primary_green_dark">#1B3A1B</color>
+    <color name="primary_green_light">#4A7C59</color>
+
+    <!-- ================= SECONDARY GREEN COLORS ================= -->
+    <color name="secondary_green">#66A572</color>
+    <color name="secondary_green_light">#81C784</color>
+    <color name="accent_green">#A5D6A7</color>
+
+    <!-- ================= LIGHT GREEN COLORS ================= -->
+    <color name="light_green">#C8E6C8</color>
+    <color name="very_light_green">#E8F5E8</color>
+    <color name="background_green">#F8FFF8</color>
+
+    <!-- ================= MONEY-RELATED COLORS ================= -->
+    <color name="income_green">#4CAF50</color>
+    <color name="expense_red">#EF5350</color>
+    <color name="balance_blue">#2196F3</color>
+
+    <!-- ================= NEUTRAL COLORS ================= -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="dark_gray">#424242</color>
+    <color name="gray">#757575</color>
+    <color name="light_gray">#BDBDBD</color>
+    <color name="very_light_gray">#F5F5F5</color>
+
+    <!-- ================= BACKGROUND COLORS ================= -->
+    <color name="background_gradient_start">#E8F5E8</color>
+    <color name="background_gradient_end">#C8E6C8</color>
+    <color name="card_background">#F8FFF8</color>
+
+    <!-- ================= BUTTON COLORS ================= -->
+    <color name="button_primary">#4A7C59</color>
+    <color name="button_primary_pressed">#2D5F2D</color>
+    <color name="button_secondary">#81C784</color>
+    <color name="button_danger">#EF5350</color>
+
+    <!-- ================= BORDER COLORS ================= -->
+    <color name="border_light">#C8E6C8</color>
+    <color name="border_medium">#81C784</color>
+    <color name="border_dark">#4A7C59</color>
+
+    <!-- ================= TEXT COLORS ================= -->
+    <color name="text_primary">#2D5F2D</color>
+    <color name="text_secondary">#4A7C59</color>
+    <color name="text_hint">#81C784</color>
+    <color name="text_disabled">#BDBDBD</color>
+
+    <!-- ================= STATUS COLORS ================= -->
+    <color name="success">#4CAF50</color>
+    <color name="warning">#FF9800</color>
+    <color name="error">#F44336</color>
+    <color name="info">#2196F3</color>
+
+    <!-- ================= NAVIGATION COLORS ================= -->
+    <color name="nav_selected">#2D5F2D</color>
+    <color name="nav_unselected">#81C784</color>
+    <color name="nav_background">#FFFFFF</color>
+
+    <!-- ================= SOCIAL MEDIA COLORS ================= -->
+    <color name="facebook_blue">#1877F2</color>
+
+    <!-- ================= TRANSPARENT COLORS ================= -->
+    <color name="transparent">#00000000</color>
+    <color name="semi_transparent_black">#80000000</color>
+    <color name="semi_transparent_white">#80FFFFFF</color>
+    <color name="semi_transparent_green">#804A7C59</color>
+
+    <!-- ================= RIPPLE EFFECT COLORS ================= -->
+    <color name="ripple_green">#1A4A7C59</color>
+    <color name="ripple_white">#1AFFFFFF</color>
+
 </resources>

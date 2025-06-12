@@ -1,5 +1,6 @@
 plugins {
-    alias(libs.plugins.android.application)
+    id 'com.android.application'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -29,12 +30,31 @@ android {
 }
 
 dependencies {
+    implementation libs.core.ktx
+    implementation libs.appcompat.v161
+    implementation libs.material.v190
+    implementation libs.constraintlayout.v214
+    implementation libs.swiperefreshlayout
+    implementation libs.coordinatorlayout
 
-    implementation libs.appcompat
+// Firebase (usando BOM para gestionar versiones)
+    implementation platform('com.google.firebase:firebase-bom:33.15.0')
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-database'
+    implementation 'com.google.firebase:firebase-storage'
+
+// Crashlytics (Buildtools se aplica en buildscript, no como implementation)
+    //implementation 'com.google.firebase:firebase-crashlytics'
+
+// Google Sign-In
+    implementation 'com.google.android.gms:play-services-auth'
+
+// Facebook Login
+    implementation 'com.facebook.android:facebook-android-sdk:18.0.3'
+
+// Gráficos (AnyChart)
+    implementation 'com.github.AnyChart:AnyChart-Android:1.1.2'
     implementation libs.material
-    implementation libs.activity
-    implementation libs.constraintlayout
-    testImplementation libs.junit
-    androidTestImplementation libs.ext.junit
-    androidTestImplementation libs.espresso.core
 }
