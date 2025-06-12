@@ -15,7 +15,6 @@ import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
-import com.facebook.FacebookSdk;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -33,6 +32,13 @@ import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+
+// Imports para Key Hash (temporal)
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
+import android.util.Base64;
+import java.security.MessageDigest;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -61,11 +67,13 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // INICIALIZAR FACEBOOK SDK ANTES QUE NADA
+        // INICIALIZAR FACEBOOK SDK ANTES QUE NADA (por si no se inicializó en Application)
         try {
-            if (!FacebookSdk.isInitialized()) {
-                FacebookSdk.sdkInitialize(getApplicationContext());
-                Log.d(TAG, "Facebook SDK inicializado manualmente");
+            if (!com.facebook.FacebookSdk.isInitialized()) {
+                com.facebook.FacebookSdk.sdkInitialize(getApplicationContext());
+                Log.d(TAG, "Facebook SDK inicializado manualmente en LoginActivity");
+            } else {
+                Log.d(TAG, "Facebook SDK ya estaba inicializado");
             }
         } catch (Exception e) {
             Log.e(TAG, "Error inicializando Facebook SDK manualmente", e);
@@ -74,6 +82,9 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         Log.d(TAG, "=== INICIANDO LOGIN ACTIVITY ===");
+
+        // TEMPORAL: Obtener Key Hash para Facebook (quitar después de configurar)
+        getKeyHash();
 
         if (BYPASS_LOGIN) {
             setupBypassMode();
@@ -150,12 +161,6 @@ public class LoginActivity extends AppCompatActivity {
         try {
             // Verificar que el default_web_client_id existe
             String webClientId = getString(R.string.default_web_client_id);
-            Log.d(TAG, webClientId);
-            if (webClientId.isEmpty() ) {
-                Log.e(TAG, "ERROR: default_web_client_id no configurado correctamente");
-                showError("Error de configuración: Web Client ID no válido");
-                return;
-            }
 
             Log.d(TAG, "Configurando Google Sign In con Web Client ID: " + webClientId);
 
@@ -176,31 +181,76 @@ public class LoginActivity extends AppCompatActivity {
 
     private void configureFacebookSignIn() {
         try {
+            // Verificar que Facebook SDK esté inicializado
+            if (!com.facebook.FacebookSdk.isInitialized()) {
+                Log.e(TAG, "Facebook SDK no inicializado");
+                showError("Error: Facebook SDK no inicializado");
+                return;
+            }
+
+            Log.d(TAG, "Facebook SDK está inicializado correctamente");
+
+            // Verificar que el botón existe
+            if (btnFacebookLogin == null) {
+                Log.e(TAG, "btnFacebookLogin es null");
+                return;
+            }
+
             mCallbackManager = CallbackManager.Factory.create();
 
+            // Configurar permisos
             btnFacebookLogin.setReadPermissions("email", "public_profile");
+
+            // Registrar callback
             btnFacebookLogin.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
                 @Override
                 public void onSuccess(LoginResult loginResult) {
                     Log.d(TAG, "Facebook login exitoso");
+                    showProgress(false);
                     handleFacebookAccessToken(loginResult.getAccessToken());
                 }
 
                 @Override
                 public void onCancel() {
                     Log.d(TAG, "Facebook login cancelado");
+                    showProgress(false);
                     showInfo("Inicio de sesión con Facebook cancelado");
                 }
 
                 @Override
                 public void onError(FacebookException error) {
                     Log.e(TAG, "Error en Facebook login", error);
-                    showError("Error en Facebook: " + error.getMessage());
+                    showProgress(false);
+
+                    String errorMessage = error.getMessage();
+
+                    // Detectar errores específicos de modo desarrollo
+                    if (errorMessage != null) {
+                        if (errorMessage.contains("InvalidScope") ||
+                                errorMessage.contains("This message is only shown to developers")) {
+
+                            showDevelopmentModeError();
+
+                        } else if (errorMessage.contains("User logged in as different Facebook user")) {
+                            showError("Cierra sesión de Facebook en el navegador e intenta de nuevo");
+
+                        } else if (errorMessage.contains("ACCESS_DENIED")) {
+                            showError("Permisos denegados. Acepta los permisos de Facebook");
+
+                        } else {
+                            showError("Error en Facebook: " + errorMessage);
+                        }
+                    } else {
+                        showError("Error desconocido en Facebook Login");
+                    }
                 }
             });
+
             Log.d(TAG, "Facebook Sign In configurado correctamente");
+
         } catch (Exception e) {
             Log.e(TAG, "Error configurando Facebook Sign In", e);
+            showError("Error configurando Facebook: " + e.getMessage());
         }
     }
 
@@ -559,6 +609,47 @@ public class LoginActivity extends AppCompatActivity {
                         Toast.makeText(this, "Error al simular login", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    // ================ MANEJO DE ERRORES DE FACEBOOK DESARROLLO ================
+    private void showDevelopmentModeError() {
+        String message = "⚠️ MODO DESARROLLO ACTIVO\n\n" +
+                "Esta app está en desarrollo.\n" +
+                "Solo usuarios autorizados pueden usar Facebook Login.\n\n" +
+                "Para probar:\n" +
+                "• Usa Google Login\n" +
+                "• O contacta para ser agregado como usuario de prueba\n\n" +
+                "Contacto: lab6.datos@gmail.com";
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Facebook Login - Modo Desarrollo")
+                .setMessage(message)
+                .setPositiveButton("Entendido", null)
+                .setNeutralButton("Usar Google", (dialog, which) -> signInWithGoogle())
+                .show();
+    }
+
+    // ================ MÉTODO TEMPORAL PARA OBTENER KEY HASH ================
+    // QUITAR ESTE MÉTODO DESPUÉS DE CONFIGURAR FACEBOOK
+    private void getKeyHash() {
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(
+                    getPackageName(),
+                    PackageManager.GET_SIGNATURES);
+
+            for (Signature signature : info.signatures) {
+                MessageDigest md = MessageDigest.getInstance("SHA");
+                md.update(signature.toByteArray());
+                String keyHash = Base64.encodeToString(md.digest(), Base64.DEFAULT);
+
+                Log.d("KeyHash", "Key Hash para Facebook: " + keyHash);
+
+                // También mostrar en Toast para copiarlo fácilmente
+                Toast.makeText(this, "Key Hash: " + keyHash, Toast.LENGTH_LONG).show();
+            }
+        } catch (Exception e) {
+            Log.e("KeyHash", "Error obteniendo key hash", e);
+        }
     }
 
     // ================ MÉTODO PARA SIGN OUT DE GOOGLE ================

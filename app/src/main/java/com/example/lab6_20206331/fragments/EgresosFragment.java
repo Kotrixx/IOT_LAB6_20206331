@@ -86,6 +86,11 @@ public class EgresosFragment extends Fragment {
         egresoRepository.getAllEgresos(new EgresoRepository.OnEgresosLoadedListener() {
             @Override
             public void onSuccess(List<Egreso> egresos) {
+                // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                if (!isAdded() || getContext() == null) {
+                    Log.w(TAG, "Fragment no está adjunto, ignorando callback");
+                    return;
+                }
                 showProgress(false);
                 egresosList.clear();
                 egresosList.addAll(egresos);
@@ -100,6 +105,11 @@ public class EgresosFragment extends Fragment {
 
             @Override
             public void onError(String error) {
+                // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                if (!isAdded() || getContext() == null) {
+                    Log.w(TAG, "Fragment no está adjunto, ignorando callback de error");
+                    return;
+                }
                 showProgress(false);
                 showError("Error cargando egresos: " + error);
             }
@@ -107,6 +117,11 @@ public class EgresosFragment extends Fragment {
     }
 
     private void showAddEgresoDialog() {
+        // VERIFICAR CONTEXTO ANTES DE CREAR DIÁLOGO
+        if (getContext() == null) {
+            Log.w(TAG, "Contexto nulo, no se puede mostrar diálogo");
+            return;
+        }
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_egreso, null);
         EditText etTitulo = dialogView.findViewById(R.id.et_titulo);
         EditText etMonto = dialogView.findViewById(R.id.et_monto);
@@ -280,18 +295,30 @@ public class EgresosFragment extends Fragment {
     }
 
     private void showProgress(boolean show) {
-        fabAdd.setEnabled(!show);
-        if (show) {
+        if (fabAdd != null) {
+            fabAdd.setEnabled(!show);
+        }
+        if (show && isAdded() && getContext() != null) {
             Toast.makeText(getContext(), "Cargando...", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void showError(String message) {
-        Toast.makeText(getContext(), "❌ " + message, Toast.LENGTH_LONG).show();
+        // VERIFICACIÓN SEGURA PARA TOAST
+        if (isAdded() && getContext() != null) {
+            Toast.makeText(getContext(), "❌ " + message, Toast.LENGTH_LONG).show();
+        } else {
+            Log.e(TAG, "Error (fragment no adjunto): " + message);
+        }
     }
 
     private void showInfo(String message) {
-        Toast.makeText(getContext(), "ℹ️ " + message, Toast.LENGTH_SHORT).show();
+        // VERIFICACIÓN SEGURA PARA TOAST
+        if (isAdded() && getContext() != null) {
+            Toast.makeText(getContext(), "ℹ️ " + message, Toast.LENGTH_SHORT).show();
+        } else {
+            Log.i(TAG, "Info (fragment no adjunto): " + message);
+        }
     }
 
     @Override

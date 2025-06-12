@@ -1,3 +1,4 @@
+// IngresosFragment.java - Corrección completa
 package com.example.lab6_20206331.fragments;
 
 import android.app.AlertDialog;
@@ -86,10 +87,20 @@ public class IngresosFragment extends Fragment {
         ingresoRepository.getAllIngresos(new IngresoRepository.OnIngresosLoadedListener() {
             @Override
             public void onSuccess(List<Ingreso> ingresos) {
+                // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                if (!isAdded() || getContext() == null) {
+                    Log.w(TAG, "Fragment no está adjunto, ignorando callback");
+                    return;
+                }
+
                 showProgress(false);
                 ingresosList.clear();
                 ingresosList.addAll(ingresos);
-                adapter.notifyDataSetChanged();
+
+                // Verificar que el adapter existe antes de notificar
+                if (adapter != null) {
+                    adapter.notifyDataSetChanged();
+                }
 
                 if (ingresos.isEmpty()) {
                     showInfo("No hay ingresos aún. Usa el botón +");
@@ -100,6 +111,12 @@ public class IngresosFragment extends Fragment {
 
             @Override
             public void onError(String error) {
+                // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                if (!isAdded() || getContext() == null) {
+                    Log.w(TAG, "Fragment no está adjunto, ignorando callback de error");
+                    return;
+                }
+
                 showProgress(false);
                 showError("Error cargando ingresos: " + error);
             }
@@ -107,6 +124,12 @@ public class IngresosFragment extends Fragment {
     }
 
     private void showAddIngresoDialog() {
+        // VERIFICAR CONTEXTO ANTES DE CREAR DIÁLOGO
+        if (getContext() == null) {
+            Log.w(TAG, "Contexto nulo, no se puede mostrar diálogo");
+            return;
+        }
+
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_ingreso, null);
         EditText etTitulo = dialogView.findViewById(R.id.et_titulo);
         EditText etMonto = dialogView.findViewById(R.id.et_monto);
@@ -148,6 +171,12 @@ public class IngresosFragment extends Fragment {
     }
 
     private void showDatePicker(EditText etFecha) {
+        // VERIFICAR CONTEXTO ANTES DE CREAR DATEPICKER
+        if (getContext() == null) {
+            Log.w(TAG, "Contexto nulo, no se puede mostrar DatePicker");
+            return;
+        }
+
         Calendar calendar = Calendar.getInstance();
 
         // Si ya hay una fecha seleccionada, usarla como inicial
@@ -190,12 +219,24 @@ public class IngresosFragment extends Fragment {
         ingresoRepository.saveIngreso(nuevoIngreso, new IngresoRepository.OnIngresoSavedListener() {
             @Override
             public void onSuccess(String ingresoId) {
+                // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                if (!isAdded() || getContext() == null) {
+                    Log.w(TAG, "Fragment no está adjunto, ignorando callback de guardado");
+                    return;
+                }
+
                 showProgress(false);
                 showInfo("Ingreso guardado para el " + fecha);
             }
 
             @Override
             public void onError(String error) {
+                // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                if (!isAdded() || getContext() == null) {
+                    Log.w(TAG, "Fragment no está adjunto, ignorando callback de error");
+                    return;
+                }
+
                 showProgress(false);
                 showError("Error al guardar: " + error);
             }
@@ -203,6 +244,12 @@ public class IngresosFragment extends Fragment {
     }
 
     private void editIngreso(Ingreso ingreso) {
+        // VERIFICAR CONTEXTO ANTES DE CREAR DIÁLOGO
+        if (getContext() == null) {
+            Log.w(TAG, "Contexto nulo, no se puede editar ingreso");
+            return;
+        }
+
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_edit_ingreso, null);
         EditText etMonto = dialogView.findViewById(R.id.et_monto);
         EditText etDescripcion = dialogView.findViewById(R.id.et_descripcion);
@@ -243,12 +290,22 @@ public class IngresosFragment extends Fragment {
         ingresoRepository.saveIngreso(ingreso, new IngresoRepository.OnIngresoSavedListener() {
             @Override
             public void onSuccess(String ingresoId) {
+                // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                if (!isAdded() || getContext() == null) {
+                    return;
+                }
+
                 showProgress(false);
                 showInfo("Ingreso actualizado");
             }
 
             @Override
             public void onError(String error) {
+                // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                if (!isAdded() || getContext() == null) {
+                    return;
+                }
+
                 showProgress(false);
                 showError("Error actualizando: " + error);
             }
@@ -256,6 +313,12 @@ public class IngresosFragment extends Fragment {
     }
 
     private void deleteIngreso(Ingreso ingreso) {
+        // VERIFICAR CONTEXTO ANTES DE CREAR DIÁLOGO
+        if (getContext() == null) {
+            Log.w(TAG, "Contexto nulo, no se puede eliminar ingreso");
+            return;
+        }
+
         new AlertDialog.Builder(getContext())
                 .setTitle("Eliminar Ingreso")
                 .setMessage("¿Eliminar " + ingreso.getTitulo() + " del " + ingreso.getFecha() + "?")
@@ -264,12 +327,22 @@ public class IngresosFragment extends Fragment {
                     ingresoRepository.deleteIngreso(ingreso.getId(), new IngresoRepository.OnIngresoDeletedListener() {
                         @Override
                         public void onSuccess() {
+                            // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                            if (!isAdded() || getContext() == null) {
+                                return;
+                            }
+
                             showProgress(false);
                             showInfo("Ingreso eliminado");
                         }
 
                         @Override
                         public void onError(String error) {
+                            // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                            if (!isAdded() || getContext() == null) {
+                                return;
+                            }
+
                             showProgress(false);
                             showError("Error eliminando: " + error);
                         }
@@ -280,18 +353,30 @@ public class IngresosFragment extends Fragment {
     }
 
     private void showProgress(boolean show) {
-        fabAdd.setEnabled(!show);
-        if (show) {
+        if (fabAdd != null) {
+            fabAdd.setEnabled(!show);
+        }
+        if (show && isAdded() && getContext() != null) {
             Toast.makeText(getContext(), "Cargando...", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void showError(String message) {
-        Toast.makeText(getContext(), "❌ " + message, Toast.LENGTH_LONG).show();
+        // VERIFICACIÓN SEGURA PARA TOAST
+        if (isAdded() && getContext() != null) {
+            Toast.makeText(getContext(), "❌ " + message, Toast.LENGTH_LONG).show();
+        } else {
+            Log.e(TAG, "Error (fragment no adjunto): " + message);
+        }
     }
 
     private void showInfo(String message) {
-        Toast.makeText(getContext(), "ℹ️ " + message, Toast.LENGTH_SHORT).show();
+        // VERIFICACIÓN SEGURA PARA TOAST
+        if (isAdded() && getContext() != null) {
+            Toast.makeText(getContext(), "ℹ️ " + message, Toast.LENGTH_SHORT).show();
+        } else {
+            Log.i(TAG, "Info (fragment no adjunto): " + message);
+        }
     }
 
     @Override
