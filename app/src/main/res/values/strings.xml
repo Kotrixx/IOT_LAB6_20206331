@@ -17,7 +17,7 @@
          5. Descarga el archivo google-services.json
          6. Dentro del archivo encontrarás estos valores -->
 
-    <string name="default_web_client_id">TU_GOOGLE_WEB_CLIENT_ID_AQUI.apps.googleusercontent.com</string>
+    <string name="default_web_client_id">603352998283-dr06aiouo370tcenvllqld2pm4m33jvq.apps.googleusercontent.com</string>
 
     <!-- ================= FACEBOOK CONFIGURATION ================= -->
 

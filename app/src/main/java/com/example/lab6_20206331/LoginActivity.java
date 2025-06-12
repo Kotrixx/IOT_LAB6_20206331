@@ -11,11 +11,11 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.lab6_20206331.FirebaseUtil;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
+import com.facebook.FacebookSdk;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -60,7 +60,20 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // INICIALIZAR FACEBOOK SDK ANTES QUE NADA
+        try {
+            if (!FacebookSdk.isInitialized()) {
+                FacebookSdk.sdkInitialize(getApplicationContext());
+                Log.d(TAG, "Facebook SDK inicializado manualmente");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error inicializando Facebook SDK manualmente", e);
+        }
+
         setContentView(R.layout.activity_login);
+
+        Log.d(TAG, "=== INICIANDO LOGIN ACTIVITY ===");
 
         if (BYPASS_LOGIN) {
             setupBypassMode();
@@ -70,6 +83,7 @@ public class LoginActivity extends AppCompatActivity {
             setupClickListeners();
             configureGoogleSignIn();
             configureFacebookSignIn();
+            debugGoogleSignIn(); // Para depuración
         }
     }
 
@@ -134,16 +148,29 @@ public class LoginActivity extends AppCompatActivity {
 
     private void configureGoogleSignIn() {
         try {
+            // Verificar que el default_web_client_id existe
+            String webClientId = getString(R.string.default_web_client_id);
+            Log.d(TAG, webClientId);
+            if (webClientId.isEmpty() ) {
+                Log.e(TAG, "ERROR: default_web_client_id no configurado correctamente");
+                showError("Error de configuración: Web Client ID no válido");
+                return;
+            }
+
+            Log.d(TAG, "Configurando Google Sign In con Web Client ID: " + webClientId);
+
             GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestIdToken(getString(R.string.default_web_client_id))
+                    .requestIdToken(webClientId)
                     .requestEmail()
+                    .requestProfile()
                     .build();
 
             mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
             Log.d(TAG, "Google Sign In configurado correctamente");
+
         } catch (Exception e) {
             Log.e(TAG, "Error configurando Google Sign In", e);
-            showError("Error configurando Google Sign In");
+            showError("Error configurando Google Sign In: " + e.getMessage());
         }
     }
 
@@ -235,9 +262,27 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void signInWithGoogle() {
-        showProgress(true);
-        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
+        try {
+            if (mGoogleSignInClient == null) {
+                Log.e(TAG, "GoogleSignInClient no inicializado");
+                showError("Error: Cliente de Google no inicializado");
+                return;
+            }
+
+            Log.d(TAG, "Iniciando Google Sign In...");
+            showProgress(true);
+
+            // Primero sign out para evitar problemas de caché
+            mGoogleSignInClient.signOut().addOnCompleteListener(this, task -> {
+                Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+                startActivityForResult(signInIntent, RC_SIGN_IN);
+            });
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error iniciando Google Sign In", e);
+            showProgress(false);
+            showError("Error iniciando Google Sign In: " + e.getMessage());
+        }
     }
 
     @Override
@@ -245,15 +290,41 @@ public class LoginActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == RC_SIGN_IN) {
+            showProgress(false); // Ocultar progress bar
+
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
-                Log.d(TAG, "Google Sign In exitoso: " + account.getId());
-                firebaseAuthWithGoogle(account.getIdToken());
+                Log.d(TAG, "Google Sign In exitoso para: " + account.getEmail());
+                Log.d(TAG, "ID Token presente: " + (account.getIdToken() != null));
+
+                if (account.getIdToken() != null) {
+                    firebaseAuthWithGoogle(account.getIdToken());
+                } else {
+                    Log.e(TAG, "ID Token es null");
+                    showError("Error: No se pudo obtener el token de autenticación");
+                }
+
             } catch (ApiException e) {
-                Log.w(TAG, "Google Sign In falló", e);
-                showProgress(false);
-                showError("Error en Google Sign In");
+                Log.w(TAG, "Google Sign In falló con código: " + e.getStatusCode(), e);
+
+                // Mensajes de error más específicos
+                String errorMessage;
+                switch (e.getStatusCode()) {
+                    case 12501: // GoogleSignInStatusCodes.SIGN_IN_CANCELLED
+                        errorMessage = "Inicio de sesión cancelado";
+                        break;
+                    case 7: // GoogleSignInStatusCodes.NETWORK_ERROR
+                        errorMessage = "Error de conexión. Verifica tu internet";
+                        break;
+                    case 10: // GoogleSignInStatusCodes.DEVELOPER_ERROR
+                        errorMessage = "Error de configuración. Verifica SHA-1 y google-services.json";
+                        break;
+                    default:
+                        errorMessage = "Error en Google Sign In (Código: " + e.getStatusCode() + ")";
+                }
+
+                showError(errorMessage);
             }
         }
 
@@ -264,27 +335,37 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void firebaseAuthWithGoogle(String idToken) {
+        Log.d(TAG, "Iniciando autenticación con Firebase usando Google ID Token");
+        showProgress(true);
+
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        showProgress(false);
-                        if (task.isSuccessful()) {
-                            Log.d(TAG, "Autenticación con Google exitosa");
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            showSuccess("¡Bienvenido!");
+                .addOnCompleteListener(this, task -> {
+                    showProgress(false);
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "Autenticación con Google exitosa");
+                        FirebaseUser user = mAuth.getCurrentUser();
+
+                        if (user != null) {
+                            Log.d(TAG, "Usuario autenticado: " + user.getEmail());
+                            showSuccess("¡Bienvenido, " + user.getDisplayName() + "!");
                             updateUI(user);
                         } else {
-                            Log.w(TAG, "Error en autenticación con Google", task.getException());
-                            showError("Error de autenticación con Google");
+                            Log.e(TAG, "Usuario es null después de autenticación exitosa");
+                            showError("Error interno de autenticación");
                         }
+                    } else {
+                        Log.w(TAG, "Error en autenticación con Firebase", task.getException());
+                        String errorMsg = task.getException() != null ?
+                                task.getException().getMessage() : "Error desconocido";
+                        showError("Error de autenticación: " + errorMsg);
                     }
                 });
     }
 
     private void handleFacebookAccessToken(AccessToken token) {
         Log.d(TAG, "Manejando token de Facebook");
+        showProgress(true);
 
         AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
         mAuth.signInWithCredential(credential)
@@ -295,7 +376,7 @@ public class LoginActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             Log.d(TAG, "Autenticación con Facebook exitosa");
                             FirebaseUser user = mAuth.getCurrentUser();
-                            showSuccess("¡Bienvenido!");
+                            showSuccess("¡Bienvenido, " + user.getDisplayName() + "!");
                             updateUI(user);
                         } else {
                             Log.w(TAG, "Error en autenticación con Facebook", task.getException());
@@ -362,18 +443,19 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin.setEnabled(!show);
         btnRegister.setEnabled(!show);
         btnGoogleSignin.setEnabled(!show);
+        btnFacebookLogin.setEnabled(!show);
     }
 
     private void showError(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "❌ " + message, Toast.LENGTH_LONG).show();
     }
 
     private void showSuccess(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "✅ " + message, Toast.LENGTH_SHORT).show();
     }
 
     private void showInfo(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "ℹ️ " + message, Toast.LENGTH_SHORT).show();
     }
 
     private void updateUI(FirebaseUser user) {
@@ -398,6 +480,39 @@ public class LoginActivity extends AppCompatActivity {
                 updateUI(currentUser);
             }
         }
+    }
+
+    // ================ MÉTODO DE DEPURACIÓN ================
+    private void debugGoogleSignIn() {
+        Log.d(TAG, "=== DEBUG GOOGLE SIGN IN ===");
+
+        try {
+            // 1. Verificar package name
+            String packageName = getPackageName();
+            Log.d(TAG, "Package Name: " + packageName);
+
+            // 2. Verificar default_web_client_id
+            String webClientId = getString(R.string.default_web_client_id);
+            Log.d(TAG, "Web Client ID: " + webClientId);
+            Log.d(TAG, "Web Client ID válido: " + (webClientId != null && webClientId.endsWith(".apps.googleusercontent.com")));
+
+            // 3. Verificar si GoogleSignInClient está inicializado
+            Log.d(TAG, "GoogleSignInClient inicializado: " + (mGoogleSignInClient != null));
+
+            // 4. Verificar cuenta actual de Google
+            GoogleSignInAccount lastSignedInAccount = GoogleSignIn.getLastSignedInAccount(this);
+            Log.d(TAG, "Última cuenta Google: " + (lastSignedInAccount != null ? lastSignedInAccount.getEmail() : "ninguna"));
+
+            // 5. Verificar Firebase Auth
+            Log.d(TAG, "Firebase Auth inicializado: " + (mAuth != null));
+            FirebaseUser currentUser = mAuth != null ? mAuth.getCurrentUser() : null;
+            Log.d(TAG, "Usuario Firebase actual: " + (currentUser != null ? currentUser.getEmail() : "ninguno"));
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error en debug", e);
+        }
+
+        Log.d(TAG, "=== FIN DEBUG ===");
     }
 
     // ================ MODO BYPASS PARA DESARROLLO ================
@@ -444,5 +559,14 @@ public class LoginActivity extends AppCompatActivity {
                         Toast.makeText(this, "Error al simular login", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    // ================ MÉTODO PARA SIGN OUT DE GOOGLE ================
+    private void signOutGoogle() {
+        if (mGoogleSignInClient != null) {
+            mGoogleSignInClient.signOut().addOnCompleteListener(this, task -> {
+                Log.d(TAG, "Google Sign Out completado");
+            });
+        }
     }
 }
