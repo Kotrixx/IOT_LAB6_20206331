@@ -81,7 +81,16 @@ public class IngresosFragment extends Fragment {
             showError("Error inicializando repository");
         }
     }
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume - Fragment visible");
 
+        // RECARGAR DATOS CUANDO EL FRAGMENT SE HACE VISIBLE
+        if (ingresoRepository != null) {
+            loadFirebaseData();
+        }
+    }
     private void loadFirebaseData() {
         showProgress(true);
         ingresoRepository.getAllIngresos(new IngresoRepository.OnIngresosLoadedListener() {

@@ -67,24 +67,37 @@ public class IngresoRepository {
 
     // Obtener todos los ingresos
     public void getAllIngresos(OnIngresosLoadedListener listener) {
-        snapshotListener = ingresosRef.addSnapshotListener((value, error) -> {
-            if (error != null) {
-                Log.e(TAG, "Error obteniendo ingresos", error);
-                listener.onError(error.getMessage());
-                return;
-            }
+        snapshotListener = ingresosRef
+                // TEMPORALMENTE SIN orderBy HASTA QUE SE CREE EL ÍNDICE
+                // .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Error obteniendo ingresos", error);
 
-            List<Ingreso> lista = new ArrayList<>();
-            if (value != null) {
-                for (QueryDocumentSnapshot doc : value) {
-                    Ingreso ingreso = doc.toObject(Ingreso.class);
-                    ingreso.setId(doc.getId());
-                    lista.add(ingreso);
-                }
-            }
+                        // Mensaje de error más específico
+                        String errorMsg = error.getMessage();
+                        if (errorMsg != null && errorMsg.contains("requires an index")) {
+                            listener.onError("Creando índice de Firebase. Inténtalo en 2-3 minutos.");
+                        } else {
+                            listener.onError(error.getMessage());
+                        }
+                        return;
+                    }
 
-            listener.onSuccess(lista);
-        });
+                    List<Ingreso> lista = new ArrayList<>();
+                    if (value != null) {
+                        for (QueryDocumentSnapshot doc : value) {
+                            Ingreso ingreso = doc.toObject(Ingreso.class);
+                            ingreso.setId(doc.getId());
+                            lista.add(ingreso);
+                        }
+                    }
+
+                    // ORDENAR MANUALMENTE POR TIMESTAMP (TEMPORALMENTE)
+                    lista.sort((i1, i2) -> Long.compare(i2.getTimestamp(), i1.getTimestamp()));
+
+                    listener.onSuccess(lista);
+                });
     }
 
     // Eliminar ingreso

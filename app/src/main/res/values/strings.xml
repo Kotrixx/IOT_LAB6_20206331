@@ -2,7 +2,7 @@
 <resources>
 
     <!-- ================= APP INFO ================= -->
-    <string name="app_name">MoneyTracker</string>
+    <string name="app_name">L6_20206331_MoneyTracker</string>
     <string name="app_description">Gestiona tu dinero de forma inteligente</string>
     <string name="app_footer">© 2024 MoneyTracker - PUCP</string>
 

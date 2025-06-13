@@ -1,3 +1,5 @@
+// EgresosFragment.java - CORRECCIÓN COMPLETA
+
 package com.example.lab6_20206331.fragments;
 
 import android.app.AlertDialog;
@@ -62,14 +64,19 @@ public class EgresosFragment extends Fragment {
         progressBar = new ProgressBar(getContext());
         progressBar.setVisibility(View.GONE);
 
-        fabAdd.setOnClickListener(v -> showAddEgresoDialog());
+        if (fabAdd != null) {
+            fabAdd.setOnClickListener(v -> showAddEgresoDialog());
+        }
     }
 
     private void setupRecyclerView() {
         egresosList = new ArrayList<>();
         adapter = new EgresosAdapter(egresosList, this::editEgreso, this::deleteEgreso);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.setAdapter(adapter);
+
+        if (recyclerView != null) {
+            recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+            recyclerView.setAdapter(adapter);
+        }
     }
 
     private void initFirebase() {
@@ -91,10 +98,20 @@ public class EgresosFragment extends Fragment {
                     Log.w(TAG, "Fragment no está adjunto, ignorando callback");
                     return;
                 }
+
+                Log.d(TAG, "Egresos recibidos: " + egresos.size());
+
                 showProgress(false);
                 egresosList.clear();
                 egresosList.addAll(egresos);
-                adapter.notifyDataSetChanged();
+
+                // VERIFICAR QUE EL ADAPTER EXISTE ANTES DE NOTIFICAR
+                if (adapter != null) {
+                    adapter.notifyDataSetChanged();
+                    Log.d(TAG, "Adapter actualizado con " + egresosList.size() + " items");
+                } else {
+                    Log.w(TAG, "Adapter es null, no se puede actualizar");
+                }
 
                 if (egresos.isEmpty()) {
                     showInfo("No hay egresos aún. Usa el botón +");
@@ -110,6 +127,7 @@ public class EgresosFragment extends Fragment {
                     Log.w(TAG, "Fragment no está adjunto, ignorando callback de error");
                     return;
                 }
+
                 showProgress(false);
                 showError("Error cargando egresos: " + error);
             }
@@ -122,6 +140,7 @@ public class EgresosFragment extends Fragment {
             Log.w(TAG, "Contexto nulo, no se puede mostrar diálogo");
             return;
         }
+
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_egreso, null);
         EditText etTitulo = dialogView.findViewById(R.id.et_titulo);
         EditText etMonto = dialogView.findViewById(R.id.et_monto);
@@ -163,6 +182,12 @@ public class EgresosFragment extends Fragment {
     }
 
     private void showDatePicker(EditText etFecha) {
+        // VERIFICAR CONTEXTO ANTES DE CREAR DATEPICKER
+        if (getContext() == null) {
+            Log.w(TAG, "Contexto nulo, no se puede mostrar DatePicker");
+            return;
+        }
+
         Calendar calendar = Calendar.getInstance();
 
         // Si ya hay una fecha seleccionada, usarla como inicial
@@ -205,12 +230,25 @@ public class EgresosFragment extends Fragment {
         egresoRepository.saveEgreso(nuevoEgreso, new EgresoRepository.OnEgresoSavedListener() {
             @Override
             public void onSuccess(String egresoId) {
+                // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                if (!isAdded() || getContext() == null) {
+                    Log.w(TAG, "Fragment no está adjunto, ignorando callback de guardado");
+                    return;
+                }
+
                 showProgress(false);
                 showInfo("Egreso guardado para el " + fecha);
+                // NO NECESITAS RECARGAR DATOS - Firebase Realtime los actualiza automáticamente
             }
 
             @Override
             public void onError(String error) {
+                // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                if (!isAdded() || getContext() == null) {
+                    Log.w(TAG, "Fragment no está adjunto, ignorando callback de error");
+                    return;
+                }
+
                 showProgress(false);
                 showError("Error al guardar: " + error);
             }
@@ -218,6 +256,12 @@ public class EgresosFragment extends Fragment {
     }
 
     private void editEgreso(Egreso egreso) {
+        // VERIFICAR CONTEXTO ANTES DE CREAR DIÁLOGO
+        if (getContext() == null) {
+            Log.w(TAG, "Contexto nulo, no se puede editar egreso");
+            return;
+        }
+
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_edit_egreso, null);
         EditText etMonto = dialogView.findViewById(R.id.et_monto);
         EditText etDescripcion = dialogView.findViewById(R.id.et_descripcion);
@@ -258,12 +302,22 @@ public class EgresosFragment extends Fragment {
         egresoRepository.saveEgreso(egreso, new EgresoRepository.OnEgresoSavedListener() {
             @Override
             public void onSuccess(String egresoId) {
+                // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                if (!isAdded() || getContext() == null) {
+                    return;
+                }
+
                 showProgress(false);
                 showInfo("Egreso actualizado");
             }
 
             @Override
             public void onError(String error) {
+                // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                if (!isAdded() || getContext() == null) {
+                    return;
+                }
+
                 showProgress(false);
                 showError("Error actualizando: " + error);
             }
@@ -271,6 +325,12 @@ public class EgresosFragment extends Fragment {
     }
 
     private void deleteEgreso(Egreso egreso) {
+        // VERIFICAR CONTEXTO ANTES DE CREAR DIÁLOGO
+        if (getContext() == null) {
+            Log.w(TAG, "Contexto nulo, no se puede eliminar egreso");
+            return;
+        }
+
         new AlertDialog.Builder(getContext())
                 .setTitle("Eliminar Egreso")
                 .setMessage("¿Eliminar " + egreso.getTitulo() + " del " + egreso.getFecha() + "?")
@@ -279,12 +339,22 @@ public class EgresosFragment extends Fragment {
                     egresoRepository.deleteEgreso(egreso.getId(), new EgresoRepository.OnEgresoDeletedListener() {
                         @Override
                         public void onSuccess() {
+                            // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                            if (!isAdded() || getContext() == null) {
+                                return;
+                            }
+
                             showProgress(false);
                             showInfo("Egreso eliminado");
                         }
 
                         @Override
                         public void onError(String error) {
+                            // VERIFICAR QUE EL FRAGMENT SIGUE ADJUNTO
+                            if (!isAdded() || getContext() == null) {
+                                return;
+                            }
+
                             showProgress(false);
                             showError("Error eliminando: " + error);
                         }
@@ -318,6 +388,17 @@ public class EgresosFragment extends Fragment {
             Toast.makeText(getContext(), "ℹ️ " + message, Toast.LENGTH_SHORT).show();
         } else {
             Log.i(TAG, "Info (fragment no adjunto): " + message);
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume - Fragment visible");
+
+        // RECARGAR DATOS CUANDO EL FRAGMENT SE HACE VISIBLE
+        if (egresoRepository != null) {
+            loadFirebaseData();
         }
     }
 

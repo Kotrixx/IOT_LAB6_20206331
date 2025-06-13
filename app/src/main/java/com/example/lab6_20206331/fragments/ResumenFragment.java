@@ -388,6 +388,17 @@ public class ResumenFragment extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume - Fragment visible");
+
+        // RECARGAR DATOS CUANDO EL FRAGMENT SE HACE VISIBLE
+        if (ingresoRepository != null && egresoRepository != null) {
+            loadDataForSelectedMonth();
+        }
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         // Limpiar repositories si es necesario
