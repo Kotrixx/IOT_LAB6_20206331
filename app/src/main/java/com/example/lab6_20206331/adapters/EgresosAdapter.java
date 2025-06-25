@@ -24,15 +24,31 @@ public class EgresosAdapter extends RecyclerView.Adapter<EgresosAdapter.EgresoVi
     private List<Egreso> egresosList;
     private OnEgresoClickListener editListener;
     private OnEgresoClickListener deleteListener;
+    private OnEgresoClickListener downloadListener; // NUEVO
 
     public interface OnEgresoClickListener {
         void onEgresoClick(Egreso egreso);
     }
 
-    public EgresosAdapter(List<Egreso> egresosList, OnEgresoClickListener editListener, OnEgresoClickListener deleteListener) {
+    // Constructor actualizado
+    public EgresosAdapter(List<Egreso> egresosList,
+                          OnEgresoClickListener editListener,
+                          OnEgresoClickListener deleteListener,
+                          OnEgresoClickListener downloadListener) { // NUEVO PARÁMETRO
         this.egresosList = egresosList;
         this.editListener = editListener;
         this.deleteListener = deleteListener;
+        this.downloadListener = downloadListener; // NUEVO
+    }
+
+    // Constructor de compatibilidad (sin descarga)
+    public EgresosAdapter(List<Egreso> egresosList,
+                          OnEgresoClickListener editListener,
+                          OnEgresoClickListener deleteListener) {
+        this.egresosList = egresosList;
+        this.editListener = editListener;
+        this.deleteListener = deleteListener;
+        this.downloadListener = null;
     }
 
     @NonNull
@@ -66,6 +82,8 @@ public class EgresosAdapter extends RecyclerView.Adapter<EgresosAdapter.EgresoVi
         private TextView tvFechaRelativa;
         private ImageView ivEdit;
         private ImageView ivDelete;
+        private ImageView ivDownload; // NUEVO
+        private ImageView ivComprobante; // NUEVO - Indicador de comprobante
 
         public EgresoViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -76,6 +94,10 @@ public class EgresosAdapter extends RecyclerView.Adapter<EgresosAdapter.EgresoVi
             tvFechaRelativa = itemView.findViewById(R.id.tv_fecha_relativa);
             ivEdit = itemView.findViewById(R.id.iv_edit);
             ivDelete = itemView.findViewById(R.id.iv_delete);
+
+            // NUEVOS CAMPOS (agregar estos IDs a tu layout)
+            ivDownload = itemView.findViewById(R.id.iv_download);
+            ivComprobante = itemView.findViewById(R.id.iv_comprobante);
         }
 
         public void bind(Egreso egreso) {
@@ -116,6 +138,33 @@ public class EgresosAdapter extends RecyclerView.Adapter<EgresosAdapter.EgresoVi
                 }
             }
 
+            // NUEVAS FUNCIONALIDADES PARA COMPROBANTE
+            if (egreso.hasComprobante()) {
+                // Mostrar indicador de comprobante
+                if (ivComprobante != null) {
+                    ivComprobante.setVisibility(View.VISIBLE);
+                    ivComprobante.setImageResource(R.drawable.ic_attachment); // Agregar este icono
+                }
+
+                // Mostrar botón de descarga
+                if (ivDownload != null) {
+                    ivDownload.setVisibility(View.VISIBLE);
+                    ivDownload.setOnClickListener(v -> {
+                        if (downloadListener != null) {
+                            downloadListener.onEgresoClick(egreso);
+                        }
+                    });
+                }
+            } else {
+                // Ocultar indicadores si no hay comprobante
+                if (ivComprobante != null) {
+                    ivComprobante.setVisibility(View.GONE);
+                }
+                if (ivDownload != null) {
+                    ivDownload.setVisibility(View.GONE);
+                }
+            }
+
             // Click listeners para botones de acción
             ivEdit.setOnClickListener(v -> {
                 if (editListener != null) {
@@ -152,7 +201,8 @@ public class EgresosAdapter extends RecyclerView.Adapter<EgresosAdapter.EgresoVi
                 if (diffInDays == 1) return "Ayer";
                 if (diffInDays == -1) return "Mañana";
                 if (diffInDays > 1 && diffInDays <= 7) return "Hace " + diffInDays + " días";
-                if (diffInDays < -1 && diffInDays >= -7) return "En " + Math.abs(diffInDays) + " días";
+                if (diffInDays < -1 && diffInDays >= -7)
+                    return "En " + Math.abs(diffInDays) + " días";
 
                 return null; // Para fechas más lejanas, no mostrar fecha relativa
             } catch (ParseException e) {
@@ -160,5 +210,11 @@ public class EgresosAdapter extends RecyclerView.Adapter<EgresosAdapter.EgresoVi
                 return null;
             }
         }
+    }
+
+    // Método para actualizar listener de descarga dinámicamente
+    public void setDownloadListener(OnEgresoClickListener downloadListener) {
+        this.downloadListener = downloadListener;
+        notifyDataSetChanged(); // Refrescar para mostrar/ocultar botones
     }
 }

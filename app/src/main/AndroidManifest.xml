@@ -3,9 +3,25 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Permissions -->
+    <!-- Permisos existentes -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- NUEVOS PERMISOS PARA COMPROBANTES Y DESCARGA -->
+
+    <!-- Para leer imágenes de la galería -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <!-- Para escribir en Downloads (Android 9 y anteriores) -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
+    <!-- Para tomar fotos (opcional) -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Para acceso a MediaStore (Android 10+) -->
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -56,6 +72,17 @@
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
+
+        <!-- Provider para compartir archivos (si necesitas) -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.lab6_20206331.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

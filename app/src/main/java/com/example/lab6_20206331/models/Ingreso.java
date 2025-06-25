@@ -12,6 +12,11 @@ public class Ingreso {
     private long timestamp; // Para ordenamiento y queries
     private String userId; // ID del usuario propietario
 
+    // NUEVOS CAMPOS PARA COMPROBANTE
+    private String comprobanteUrl; // URL del comprobante en Cloudinary
+    private String comprobantePublicId; // Public ID en Cloudinary
+    private String comprobanteNombre; // Nombre original del archivo
+
     // Constructor vacío (requerido por Firebase)
     public Ingreso() {}
 
@@ -34,7 +39,20 @@ public class Ingreso {
         this.timestamp = System.currentTimeMillis();
     }
 
-    // Getters
+    // Constructor con comprobante
+    public Ingreso(String titulo, double monto, String descripcion, String fecha,
+                   String comprobanteUrl, String comprobantePublicId, String comprobanteNombre) {
+        this.titulo = titulo;
+        this.monto = monto;
+        this.descripcion = descripcion;
+        this.fecha = fecha;
+        this.comprobanteUrl = comprobanteUrl;
+        this.comprobantePublicId = comprobantePublicId;
+        this.comprobanteNombre = comprobanteNombre;
+        this.timestamp = System.currentTimeMillis();
+    }
+
+    // Getters existentes
     public String getId() { return id; }
     public String getTitulo() { return titulo; }
     public double getMonto() { return monto; }
@@ -43,7 +61,12 @@ public class Ingreso {
     public long getTimestamp() { return timestamp; }
     public String getUserId() { return userId; }
 
-    // Setters
+    // Nuevos getters para comprobante
+    public String getComprobanteUrl() { return comprobanteUrl; }
+    public String getComprobantePublicId() { return comprobantePublicId; }
+    public String getComprobanteNombre() { return comprobanteNombre; }
+
+    // Setters existentes
     public void setId(String id) { this.id = id; }
     public void setTitulo(String titulo) { this.titulo = titulo; }
     public void setMonto(double monto) { this.monto = monto; }
@@ -52,9 +75,33 @@ public class Ingreso {
     public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
     public void setUserId(String userId) { this.userId = userId; }
 
-    // Métodos de utilidad
+    // Nuevos setters para comprobante
+    public void setComprobanteUrl(String comprobanteUrl) { this.comprobanteUrl = comprobanteUrl; }
+    public void setComprobantePublicId(String comprobantePublicId) { this.comprobantePublicId = comprobantePublicId; }
+    public void setComprobanteNombre(String comprobanteNombre) { this.comprobanteNombre = comprobanteNombre; }
+
+    // Métodos de utilidad existentes
     public boolean hasDescription() {
         return descripcion != null && !descripcion.trim().isEmpty();
+    }
+
+    // Nuevos métodos de utilidad para comprobante
+    public boolean hasComprobante() {
+        return comprobanteUrl != null && !comprobanteUrl.trim().isEmpty();
+    }
+
+    public boolean hasComprobanteFile() {
+        return hasComprobante() && comprobantePublicId != null && !comprobantePublicId.trim().isEmpty();
+    }
+
+    public String getComprobanteFileName() {
+        if (comprobanteNombre != null && !comprobanteNombre.trim().isEmpty()) {
+            return comprobanteNombre;
+        }
+        if (comprobantePublicId != null) {
+            return comprobantePublicId + ".jpg"; // Default extension
+        }
+        return "comprobante_" + id + ".jpg";
     }
 
     // Para el mes actual en formato MM/yyyy
@@ -78,6 +125,9 @@ public class Ingreso {
                 ", fecha='" + fecha + '\'' +
                 ", timestamp=" + timestamp +
                 ", userId='" + userId + '\'' +
+                ", comprobanteUrl='" + comprobanteUrl + '\'' +
+                ", comprobantePublicId='" + comprobantePublicId + '\'' +
+                ", comprobanteNombre='" + comprobanteNombre + '\'' +
                 '}';
     }
 
