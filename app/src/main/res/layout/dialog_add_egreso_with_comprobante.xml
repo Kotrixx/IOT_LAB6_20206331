@@ -83,7 +83,7 @@
         android:layout_marginBottom="8dp"
         app:cardCornerRadius="8dp"
         app:cardElevation="2dp"
-        app:strokeColor="@color/accent_green"
+        app:strokeColor="@color/colorAccent"
         app:strokeWidth="1dp">
 
         <LinearLayout
@@ -98,7 +98,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:text="Comprobante (Requerido)"
-                android:textColor="@color/accent_green"
+                android:textColor="@color/colorAccent"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -109,8 +109,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:text="Seleccionar Imagen"
-                app:icon="@drawable/ic_camera"
+                android:text="📸 Tomar Foto o Seleccionar Imagen"
+                app:icon="@drawable/ic_add_photo"
                 app:iconGravity="start" />
 
             <!-- Preview de imagen seleccionada -->
