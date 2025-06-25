@@ -21,15 +21,31 @@ public class IngresosAdapter extends RecyclerView.Adapter<IngresosAdapter.Ingres
     private List<Ingreso> ingresosList;
     private OnIngresoClickListener editListener;
     private OnIngresoClickListener deleteListener;
+    private OnIngresoClickListener downloadListener; // NUEVO
 
     public interface OnIngresoClickListener {
         void onIngresoClick(Ingreso ingreso);
     }
 
-    public IngresosAdapter(List<Ingreso> ingresosList, OnIngresoClickListener editListener, OnIngresoClickListener deleteListener) {
+    // Constructor actualizado
+    public IngresosAdapter(List<Ingreso> ingresosList,
+                           OnIngresoClickListener editListener,
+                           OnIngresoClickListener deleteListener,
+                           OnIngresoClickListener downloadListener) { // NUEVO PARÁMETRO
         this.ingresosList = ingresosList;
         this.editListener = editListener;
         this.deleteListener = deleteListener;
+        this.downloadListener = downloadListener; // NUEVO
+    }
+
+    // Constructor de compatibilidad (sin descarga)
+    public IngresosAdapter(List<Ingreso> ingresosList,
+                           OnIngresoClickListener editListener,
+                           OnIngresoClickListener deleteListener) {
+        this.ingresosList = ingresosList;
+        this.editListener = editListener;
+        this.deleteListener = deleteListener;
+        this.downloadListener = null;
     }
 
     @NonNull
@@ -57,6 +73,8 @@ public class IngresosAdapter extends RecyclerView.Adapter<IngresosAdapter.Ingres
         private TextView tvFecha;
         private ImageView ivEdit;
         private ImageView ivDelete;
+        private ImageView ivDownload; // NUEVO
+        private ImageView ivComprobante; // NUEVO - Indicador de comprobante
 
         public IngresoViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -66,6 +84,10 @@ public class IngresosAdapter extends RecyclerView.Adapter<IngresosAdapter.Ingres
             tvFecha = itemView.findViewById(R.id.tv_fecha);
             ivEdit = itemView.findViewById(R.id.iv_edit);
             ivDelete = itemView.findViewById(R.id.iv_delete);
+
+            // NUEVOS CAMPOS (agregar estos IDs a tu layout)
+            ivDownload = itemView.findViewById(R.id.iv_download);
+            ivComprobante = itemView.findViewById(R.id.iv_comprobante);
         }
 
         public void bind(Ingreso ingreso) {
@@ -85,7 +107,34 @@ public class IngresosAdapter extends RecyclerView.Adapter<IngresosAdapter.Ingres
 
             tvFecha.setText(ingreso.getFecha());
 
-            // Click listeners
+            // NUEVAS FUNCIONALIDADES PARA COMPROBANTE
+            if (ingreso.hasComprobante()) {
+                // Mostrar indicador de comprobante
+                if (ivComprobante != null) {
+                    ivComprobante.setVisibility(View.VISIBLE);
+                    ivComprobante.setImageResource(R.drawable.ic_attachment); // Agregar este icono
+                }
+
+                // Mostrar botón de descarga
+                if (ivDownload != null) {
+                    ivDownload.setVisibility(View.VISIBLE);
+                    ivDownload.setOnClickListener(v -> {
+                        if (downloadListener != null) {
+                            downloadListener.onIngresoClick(ingreso);
+                        }
+                    });
+                }
+            } else {
+                // Ocultar indicadores si no hay comprobante
+                if (ivComprobante != null) {
+                    ivComprobante.setVisibility(View.GONE);
+                }
+                if (ivDownload != null) {
+                    ivDownload.setVisibility(View.GONE);
+                }
+            }
+
+            // Click listeners existentes
             ivEdit.setOnClickListener(v -> {
                 if (editListener != null) {
                     editListener.onIngresoClick(ingreso);
@@ -98,5 +147,17 @@ public class IngresosAdapter extends RecyclerView.Adapter<IngresosAdapter.Ingres
                 }
             });
         }
+    }
+
+    // Método para actualizar la lista
+    public void updateList(List<Ingreso> newList) {
+        this.ingresosList = newList;
+        notifyDataSetChanged();
+    }
+
+    // Métodos para actualizar listeners dinámicamente
+    public void setDownloadListener(OnIngresoClickListener downloadListener) {
+        this.downloadListener = downloadListener;
+        notifyDataSetChanged(); // Refrescar para mostrar/ocultar botones
     }
 }
